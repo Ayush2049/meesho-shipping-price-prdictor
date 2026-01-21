@@ -1,0 +1,11 @@
+.image-card {
+  position: relative;
+}
+
+.image-frame {
+  transition: transform 0.15s ease;
+}
+
+.image-card:hover .image-frame {
+  transform: scale(1.02);
+}

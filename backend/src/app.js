@@ -17,7 +17,11 @@ const app = express()
 // ✅ ONE static mount with forced download
 
 
+
 app.use(cors(corsConfig))
+app.options(/.*/, cors())
+// ✅ preflight support
+
 app.use(express.json())
 
 app.use('/api', routes)

@@ -1,27 +1,84 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import ImageCard from "../../components/Card/ImageCard";
+import { generateImages } from "../../modules/image/services/image.api";
+import "@/styles/design/generate.form.css";
 
 export default function GeneratePage() {
+  const router = useRouter();
+
+  // 🔐 AUTH GUARD
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/auth");
+    }
+  }, [router]);
+
+  // 📦 STATE
+  const [category, setCategory] = useState("");
+  const [file, setFile] = useState(null);
   const [data, setData] = useState(null);
-  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [sortBy, setSortBy] = useState("shipping"); // shipping | rank | pir
 
-  useEffect(() => {
-    setMounted(true);
-    const stored = sessionStorage.getItem("results");
-    if (stored) {
-      setData(JSON.parse(stored));
+  // 🚀 GENERATE
+  const handleGenerate = async () => {
+    if (!category || !file) {
+      alert("Category and image are required");
+      return;
     }
-  }, []);
 
-  if (!mounted) return null;
+    const formData = new FormData();
+    formData.append("category", category);
+    formData.append("image", file);
+
+    setLoading(true);
+    try {
+      const result = await generateImages(formData);
+      setData(result);
+    } catch (err) {
+      alert(err?.response?.data?.error || "Failed to generate images");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ⛔ EMPTY STATE
   if (!data || !data.variants?.length) {
-    return <p>No results found</p>;
+    return (
+      <main className="generate-container">
+        <h1 className="generate-title">Low Shipping Image Optimizer</h1>
+
+        <div className="generate-form">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">Select Category</option>
+            <option value="tshirt">T-Shirt</option>
+            <option value="dress">Dress</option>
+            <option value="footwear">Footwear</option>
+            <option value="home">Home / Kitchen</option>
+          </select>
+
+          <input
+            type="file"
+            accept="image/jpeg"
+            onChange={(e) => setFile(e.target.files[0])}
+          />
+
+          <button onClick={handleGenerate} disabled={loading}>
+            {loading ? "Optimizing…" : "Generate"}
+          </button>
+        </div>
+      </main>
+    );
   }
 
-  // 🔁 Sorting (safe)
+  // 🔁 SORTING (SAFE)
   const sortedVariants = [...data.variants].sort((a, b) => {
     if (sortBy === "shipping")
       return (a.estimatedShipping ?? 999) - (b.estimatedShipping ?? 999);
@@ -30,7 +87,7 @@ export default function GeneratePage() {
     return 0;
   });
 
-  // 📊 Stats
+  // 📊 STATS
   const prices = data.variants.map((v) => v.estimatedShipping ?? 0);
   const lowestShipping = Math.min(...prices);
   const avgShipping = Math.round(
@@ -73,11 +130,19 @@ export default function GeneratePage() {
       </div>
 
       {/* SORT CONTROLS */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+      {/* SORT CONTROLS + BACK */}
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          marginBottom: 24,
+          alignItems: "center",
+        }}
+      >
+        {/* SORT BUTTONS */}
         {[
           { key: "shipping", label: "💰 Shipping" },
           { key: "rank", label: "🏆 Rank" },
-          { key: "pir", label: "📐 PIR" },
         ].map((btn) => (
           <button
             key={btn.key}
@@ -89,11 +154,31 @@ export default function GeneratePage() {
               background: sortBy === btn.key ? "#10b981" : "#fff",
               color: sortBy === btn.key ? "#fff" : "#065f46",
               cursor: "pointer",
+              fontWeight: 500,
             }}
           >
             {btn.label}
           </button>
         ))}
+
+        {/* PUSH BACK BUTTON TO RIGHT */}
+        <div style={{ flex: 1 }} />
+
+        {/* BACK BUTTON */}
+        <button
+          onClick={() => router.back()}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 8,
+            border: "2px solid #4a7768",
+            background: "#ea3e23",
+            color: "#ffffff",
+            cursor: "pointer",
+            fontWeight: 500,
+          }}
+        >
+          ⬅️ GENRATE AGAIN
+        </button>
       </div>
 
       {/* IMAGE GRID */}
@@ -107,7 +192,7 @@ export default function GeneratePage() {
         {sortedVariants.map((v) => (
           <ImageCard
             key={v.rank}
-            imageUrl={v.imageUrl} // ✅ Use the URL directly - it's already complete!
+            imageUrl={v.imageUrl}
             rank={v.rank}
             pir={v.pir}
             probe={v.probe}

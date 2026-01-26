@@ -70,22 +70,6 @@ export default function ImageCard({
         <span>
           <strong>Rank:</strong> #{rank}
         </span>
-        <span>
-          <strong>Probe:</strong> {probe}
-        </span>
-        <span>
-          <strong>PIR:</strong> {safePir}
-        </span>
-        <span>
-          <strong>Resolution:</strong>{" "}
-          {resolution ? `${Math.round(resolution / 1000)}k px` : "—"}
-        </span>
-        <span>
-          <strong>DPI:</strong> {safeDpi}
-        </span>
-        <span>
-          <strong>JPEG Q:</strong> {safeJpegQuality}
-        </span>
       </div>
 
       {/* DOWNLOAD */}

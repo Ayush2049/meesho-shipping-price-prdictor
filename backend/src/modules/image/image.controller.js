@@ -4,6 +4,7 @@ import { detectBoundingBox } from './boundingBox.utils.js'
 import { generatePIRVariants } from './canvasGenerator.utils.js'
 import { computeShippingScores } from '../shipping/shipping.service.js'
 import cloudinary from '../../config/cloudinary.config.js'
+import { Image } from './image.model.js'
 
 export const uploadAndGenerateVariants = async (req, res, next) => {
   try {
@@ -92,6 +93,12 @@ export const uploadAndGenerateVariants = async (req, res, next) => {
     const finalVariants = uploadedVariants.filter(v => v !== null)
 
     console.log(`✅ Completed ${finalVariants.length}/${scoredVariants.length} uploads`)
+    // ✅ SAVE GENERATION TO MONGODB (NON-DESTRUCTIVE ADDITION)
+    await Image.create({
+      user: req.user.userId,   // from JWT
+      category,
+      variants: finalVariants
+    })
 
     // ✅ 8️⃣ Final response
     return res.json({

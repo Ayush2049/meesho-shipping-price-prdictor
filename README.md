@@ -24,17 +24,6 @@ A smart logistics optimization platform that predicts and optimizes shipping pri
 
 ---
 
-## 📂 Folder Structure
-
-/meesho-shipping-price-optimizer
-│── client/
-│── server/
-│── dataset/
-│── ml-model/
-│── README.md
-
-
----
 
 ## ⚙️ Installation
 
